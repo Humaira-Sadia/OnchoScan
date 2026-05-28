@@ -77,10 +77,53 @@ export const Diagnosis = ({ onComplete }) => {
 
     const handleFile = (f) => f && setFile(f);
     const handleDrop = (ev) => { ev.preventDefault(); setDragOver(false); handleFile(ev.dataTransfer.files[0]); };
-    const handleAnalyse = () => {
+    const handleAnalyse = async () => {
         if (!file) return;
-        setLoading(true);
-        setTimeout(() => onComplete({ file, age, birads, history }), 2200);
+
+        try {
+            setLoading(true);
+
+            // convert image to base64
+            const reader = new FileReader();
+
+            reader.readAsDataURL(file);
+
+            reader.onload = async () => {
+                try {
+                    const response = await fetch("http://127.0.0.1:5000/predict", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            image: reader.result,
+                        }),
+                    });
+
+                    const result = await response.json();
+
+                    console.log("Prediction:", result);
+
+                    onComplete({
+                        file,
+                        age,
+                        birads,
+                        history,
+                        prediction: result,
+                    });
+
+                } catch (err) {
+                    console.error(err);
+                    alert("Prediction failed");
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+        } catch (err) {
+            console.error(err);
+            setLoading(false);
+        }
     };
 
     const current = SLIDES[slide];

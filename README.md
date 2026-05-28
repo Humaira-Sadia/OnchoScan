@@ -4,7 +4,7 @@ A multimodal deep learning web application for breast cancer diagnosis, combinin
 
 > M.Tech Research Project · 2027
 
-> Project Live Link : 
+> Project Live Link : https://oncho-scan.vercel.app/
 
 > Github Repo : https://github.com/Humaira-Sadia/OnchoScan
 
