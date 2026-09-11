@@ -85,12 +85,17 @@ export const Diagnosis = ({ onComplete }) => {
 
             // convert image to base64
             const reader = new FileReader();
+            // const url = "http://127.0.0.1:5000/predict";
+            const url = "https://onchoscan-backend.onrender.com/predict";
 
             reader.readAsDataURL(file);
 
             reader.onload = async () => {
                 try {
-                    const response = await fetch("http://127.0.0.1:5000/predict", {
+                    try {
+                        await fetch("https://onchoscan-backend.onrender.com/health");
+                    } catch (_) { }
+                    const response = await fetch(url, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
