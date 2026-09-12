@@ -1,22 +1,21 @@
 import React, { useState } from "react";
 import logo from "../assets/logo.png";
 import "../Chatbot.css";
-import { getBotResponse } from "../constants/faqs";
+
 const ChatBot = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [input, setInput] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const [messages, setMessages] = useState([
         {
             sender: "bot",
-            text: "Hello! 👋 Welcome to OnchoScan. I'm your AI assistant. I can help you understand the diagnosis process, upload requirements, and patient details. How can I help you today?",
+            text: "Hello! 👋 Welcome to OnchoScan. I’m here to help you understand breast cancer, symptoms, types, treatment, medical aids, nutrition, and foods to avoid. What would you like to know?",
         },
     ]);
 
-
-
-    const sendMessage = () => {
-        if (!input.trim()) return;
+    const sendMessage = async () => {
+        if (!input.trim() || isLoading) return;
 
         const userMessage = input.trim();
 
@@ -29,16 +28,43 @@ const ChatBot = () => {
         ]);
 
         setInput("");
+        setIsLoading(true);
 
-        setTimeout(() => {
+        try {
+            const response = await fetch("https://oncho-chats-six.vercel.app/api/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    message: userMessage,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch response");
+            }
+
+            const data = await response.json();
+
             setMessages((prev) => [
                 ...prev,
                 {
                     sender: "bot",
-                    text: getBotResponse(userMessage),
+                    text: data.response || data.message || "Sorry, I couldn't process your request.",
                 },
             ]);
-        }, 500);
+        } catch (error) {
+            setMessages((prev) => [
+                ...prev,
+                {
+                    sender: "bot",
+                    text: "Sorry, I'm having trouble connecting to the assistant. Please try again.",
+                },
+            ]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleKeyDown = (e) => {
@@ -49,35 +75,44 @@ const ChatBot = () => {
 
     return (
         <>
-            {/* Chat Button */}
-            <button
-                className={`chat-button ${isOpen ? "active" : ""}`}
-                onClick={() => setIsOpen(!isOpen)}
-                aria-label="Open OnchoScan Assistant"
-            >
-                {isOpen ? "×" : "💬"}
-            </button>
+            {/* Show floating button ONLY when chatbot is closed */}
+            {!isOpen && (
+                <button
+                    className="chat-button"
+                    onClick={() => setIsOpen(true)}
+                    aria-label="Open OnchoScan Assistant"
+                >
+                    💬
+                </button>
+            )}
 
-            {/* Chat Window */}
             {isOpen && (
                 <div className="chat-container">
-
-                    {/* Header */}
                     <div className="chat-header">
-                        <div className="bot-avatar">
-                            <img src={logo} alt="bot-logo" height={50} />
+                        <div className="chatbot-header">
+                            <div className="bot-avatar">
+                                <img src={logo} alt="bot-logo" height={50} />
+                            </div>
+
+                            <div className="chat-header-info">
+                                <h3>OnchoScan Assistant</h3>
+                                <span>
+                                    <span className="online-dot"></span>
+                                    Online
+                                </span>
+                            </div>
                         </div>
 
-                        <div>
-                            <h3>OnchoScan Assistant</h3>
-                            <span>
-                                <span className="online-dot"></span>
-                                Online
-                            </span>
-                        </div>
+                        {/* Close button inside header */}
+                        <button
+                            className="chat-close-button"
+                            onClick={() => setIsOpen(false)}
+                            aria-label="Close OnchoScan Assistant"
+                        >
+                            ×
+                        </button>
                     </div>
 
-                    {/* Messages */}
                     <div className="chat-messages">
                         {messages.map((message, index) => (
                             <div
@@ -93,20 +128,33 @@ const ChatBot = () => {
                                 </div>
                             </div>
                         ))}
+
+                        {isLoading && (
+                            <div className="message-row bot">
+                                <div className="small-avatar">✦</div>
+                                <div className="message">Typing...</div>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Quick Actions */}
                     <div className="quick-actions">
-                        <button onClick={() => setInput("How do I upload a scan?")}>
+                        <button
+                            onClick={() =>
+                                setInput("How do I upload a scan?")
+                            }
+                        >
                             Upload scan
                         </button>
 
-                        <button onClick={() => setInput("How do I start an analysis?")}>
+                        <button
+                            onClick={() =>
+                                setInput("How do I start an analysis?")
+                            }
+                        >
                             Start analysis
                         </button>
                     </div>
 
-                    {/* Input */}
                     <div className="chat-input">
                         <input
                             type="text"
@@ -116,7 +164,10 @@ const ChatBot = () => {
                             onKeyDown={handleKeyDown}
                         />
 
-                        <button onClick={sendMessage}>
+                        <button
+                            onClick={sendMessage}
+                            disabled={isLoading}
+                        >
                             ➤
                         </button>
                     </div>

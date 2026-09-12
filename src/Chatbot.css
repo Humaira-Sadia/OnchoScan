@@ -38,7 +38,7 @@
   position: fixed;
 
   right: 28px;
-  bottom: 100px;
+  bottom: 50px;
 
   width: 370px;
   height: 520px;
@@ -71,10 +71,18 @@
 
   display: flex;
   align-items: center;
+  justify-content: space-around;
 
   padding: 0 18px;
 
   gap: 12px;
+}
+
+.chatbot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: -20px;
 }
 
 .bot-avatar {
@@ -90,7 +98,16 @@
   align-items: center;
   justify-content: center;
 
+  margin-right: 15px;
   font-size: 20px;
+}
+
+.chat-close-button {
+  font-size: 32px;
+  background-color: transparent;
+  color: #ffffff;
+  border: none;
+  margin-right: -15px;
 }
 
 .chat-header h3 {
